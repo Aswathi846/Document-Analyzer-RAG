@@ -1,0 +1,26 @@
+DOCUMENT TITLE: Attention Is All You Need
+AUTHORS: Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, Illia Polosukhin
+ORGANIZATION: Google Brain / Google Research
+YEAR: 2017 (Updated 2023)
+
+ABSTRACT:
+The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train.
+
+1. INTRODUCTION:
+Recurrent neural networks, long short-term memory (LSTM) and gated recurrent neural networks in particular, have been firmly established as state of the art approaches in sequence modeling. However, recurrent models inherently preclude parallelization within training examples, which becomes critical at longer sequence lengths. Attention mechanisms have become an integral part of compelling sequence modeling, allowing modeling of dependencies without regard to their distance in the input or output sequences.
+
+2. MODEL ARCHITECTURE:
+Most competitive neural sequence transduction models have an encoder-decoder structure.
+- Encoder: The encoder is composed of a stack of N=6 identical layers. Each layer has two sub-layers: a multi-head self-attention mechanism and a position-wise fully connected feed-forward network.
+- Decoder: The decoder is also composed of a stack of N=6 identical layers. It includes a third sub-layer which performs multi-head attention over the output of the encoder stack.
+
+3. ATTENTION MECHANISM:
+An attention function can be described as mapping a query and a set of key-value pairs to an output.
+- Scaled Dot-Product Attention: We compute the dot products of the query with all keys, divide each by the square root of the key dimension, and apply a softmax function.
+- Multi-Head Attention: Instead of performing a single attention function, we linearly project the queries, keys, and values multiple times to perform attention in parallel. This allows the model to jointly attend to information from different representation subspaces.
+
+4. WHY SELF-ATTENTION:
+Self-attention connects all positions with a constant number of sequentially executed operations, whereas a recurrent layer requires O(n) sequential operations. This makes self-attention layers faster than recurrent layers when the sequence length n is smaller than the representation dimensionality d.
+
+5. RESULTS:
+On the WMT 2014 English-to-German translation task, the big transformer model outperformed the best previously reported models by more than 2.0 BLEU, establishing a new state-of-the-art score of 28.4.

@@ -1,0 +1,3 @@
+user_input,retrieved_contexts,response,reference,faithfulness,answer_relevancy,context_precision,context_recall
+What is the core benefit of the Transformer over RNNs?,[],I don't have enough information.,The Transformer allows for significantly more parallelization and requires less time to train compared to recurrent models.,1.0,0.0,0.0,0.0
+Explain the Scaled Dot-Product Attention formula.,[],I don't have enough information.,"It computes the dot products of the query with all keys, divides by the square root of the key dimension, and applies a softmax function to the values.",1.0,0.0,0.0,0.0
