@@ -1,9 +1,9 @@
 ---
 title: Document Analyzer RAG
-emoji: 📄
+emoji: 🚀
 colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_file: frontend/app_final.py
+colorTo: green
+sdk: streamlit
+sdk_version: 1.35.0
 pinned: false
 ---
