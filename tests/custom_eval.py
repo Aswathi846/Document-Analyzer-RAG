@@ -116,6 +116,8 @@ def run_evaluation():
             print(f"Mean Faithfulness: {summary_metrics['faithfulness']:.2%}")
             print(f"Mean Relevancy: {summary_metrics['relevancy']:.2%}")
             print(f"Results exported directly to {SHARED_METRICS_PATH}")
+
+            return summary_metrics
         
         except Exception as e:
             print(f"💥 Inner Evaluation Pipeline Failed: {e}")
