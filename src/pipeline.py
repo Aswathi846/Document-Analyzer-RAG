@@ -27,8 +27,15 @@ load_dotenv(dotenv_path=ENV_PATH if ENV_PATH.exists() else None)
 
 class GeminiRAG:
     def __init__(self):
-        # 1. Initialize Embeddings
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+        # 1. Fetch the API key explicitly from system variables (Hugging Face Secrets)
+        #    or fallback to whatever dotenv grabbed locally.
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+        # 2. Initialize Embeddings with explicit credential token
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/gemini-embedding-001",
+            google_api_key=api_key
+        )
         
         IS_DOCKER = os.path.exists('/.dockerenv')
         CHROMA_HOST = os.getenv("CHROMA_HOST", "127.0.0.1")
@@ -37,7 +44,7 @@ class GeminiRAG:
         print(f"Connecting to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}...")
         remote_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
 
-        # 2. Load Vector Store
+        # 3. Load Vector Store
         self.vectorstore = Chroma(
             client=remote_client,
             collection_name="research_assistant",
@@ -46,7 +53,7 @@ class GeminiRAG:
         
         base_retriever = self.vectorstore.as_retriever(search_kwargs={"k": 10})
 
-        # 3. Initialize Reranker (Two-Stage Retrieval)
+        # 4. Initialize Reranker (Two-Stage Retrieval)
         if FlashrankRerank and ContextualCompressionRetriever:
             try:
                 compressor = FlashrankRerank()
@@ -62,9 +69,12 @@ class GeminiRAG:
             self.retriever = base_retriever
             print("System initialized with Base Retriever.")
 
-        # 4. Initialize LLM
-        # LangChain LLM classes automatically send traces if variables are in .env
-        self.llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0.3)
+        # 5. Initialize LLM with explicit credential token
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-flash-latest", 
+            temperature=0.3,
+            google_api_key=api_key
+        )
 
     @traceable(run_type="retriever") # 2nd step: Captures retrieval & reranking
     def retrieve_and_rerank(self, question):

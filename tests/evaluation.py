@@ -24,7 +24,7 @@ def run_evaluation():
     judge_llm = ChatGoogleGenerativeAI(
         model="gemini-flash-latest", # Recommended for higher accuracy judging
         google_api_key=os.environ.get("GOOGLE_API_KEY"),
-        temperature=0
+        temperature=0.3
     )
 
     test_set = [
