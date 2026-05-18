@@ -9,8 +9,8 @@ from langchain_core.tracers.context import collect_runs
 
 # --- CRITICAL RAGAS WRAPPER IMPORTS ---
 from ragas import evaluate
-from ragas.llms import LangchainLLWrapper
-from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.llms.base import LangchainLLM          
+from ragas.embeddings.base import LangchainEmbeddings
 from ragas.metrics import (
     Faithfulness,
     AnswerRelevancy,
@@ -38,15 +38,16 @@ def run_evaluation():
     rag_system = GeminiRAG()
     
     # 1. Properly Wrap the Judge LLM with LangchainLLWrapper
+    # 1. Properly Wrap the Judge LLM (Updated class name)
     raw_judge_llm = ChatGoogleGenerativeAI(
-        model="gemini-flash-latest",  # High-speed flash model recommended for evaluations
+        model="gemini-flash-latest",  
         google_api_key=os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"),
         temperature=0
     )
-    judge_llm = LangchainLLWrapper(raw_judge_llm)
+    judge_llm = LangchainLLM(llm=raw_judge_llm)  
 
-    # 2. Properly Wrap Embeddings with LangchainEmbeddingsWrapper
-    judge_embeddings = LangchainEmbeddingsWrapper(rag_system.embeddings)
+    # 2. Properly Wrap Embeddings (Updated class name)
+    judge_embeddings = LangchainEmbeddings(embeddings=rag_system.embeddings)  
 
     results = []
     
