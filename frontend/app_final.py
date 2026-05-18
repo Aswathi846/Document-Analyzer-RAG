@@ -25,7 +25,8 @@ METRICS_FILE_PATH = "/app/shared/metrics.json"
 
 # 3. Configuration - Dynamically resolve container cross-talk routes
 # Hugging Face internal networks communicate much more stably over 'localhost' or explicit '0.0.0.0' bindings.
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8002")
+#  Update to point directly to the shared local container gateway port
+BACKEND_URL = "http://127.0.0.1:8002"
 API_URL = BACKEND_URL
 
 # 4. Sidebar - Dashboard & Management
