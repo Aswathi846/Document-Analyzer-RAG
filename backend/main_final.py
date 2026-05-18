@@ -111,6 +111,18 @@ async def trigger_benchmark(background_tasks: BackgroundTasks):
         try:
             print("Starting background RAGAS evaluation...")
             results = run_evaluation()
+            
+            # --- STRUCTURAL SAFETY CHECK ---
+            # If the evaluation function returned None or invalid data, initialize a safe dict
+            if results is None or not isinstance(results, dict):
+                print("⚠️ Warning: run_evaluation() returned None or invalid type. Creating placeholder schema.")
+                results = {
+                    "faithfulness": 0.0,
+                    "answer_relevance": 0.0,
+                    "error": "Evaluation execution returned empty dataset. Check your custom_eval.py return statement."
+                }
+            # -------------------------------
+            
             results['last_run'] = datetime.now().strftime("%Y-%m-%d %H:%M")
             
             os.makedirs(os.path.dirname(METRICS_FILE_PATH), exist_ok=True)
