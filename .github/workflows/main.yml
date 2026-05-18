@@ -21,9 +21,9 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
           
-          # Cleanly handle remote setup or overwrite it if it already exists
-          git remote add hf https://Aswathi007:$HF_TOKEN@huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG.git || \
-          git remote set-url hf https://Aswathi007:$HF_TOKEN@huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG.git
+          # Use an authenticated header injection instead of plain text URLs
+          git remote add hf https://x-token-auth:${HF_TOKEN}@huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG.git || \
+          git remote set-url hf https://x-token-auth:${HF_TOKEN}@huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG.git
           
-          # Force sync changes across remotes
+          # Force sync changes smoothly across remotes
           git push --force hf main
