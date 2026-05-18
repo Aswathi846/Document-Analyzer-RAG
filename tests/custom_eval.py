@@ -7,10 +7,10 @@ from src.pipeline import GeminiRAG
 from dotenv import load_dotenv
 from langchain_core.tracers.context import collect_runs
 
-# --- CRITICAL RAGAS WRAPPER IMPORTS ---
+# --- CRITICAL RAGAS WRAPPER IMPORTS (STABLE CONVENTION) ---
 from ragas import evaluate
-from ragas.llms.base import LangchainLLM          
-from ragas.embeddings.base import LangchainEmbeddings
+from ragas.llms import LangchainLLMWrapper                  # 🔄 Corrected top-level import name
+from ragas.embeddings import LangchainEmbeddingsWrapper      # 🔄 Corrected top-level import name
 from ragas.metrics import (
     Faithfulness,
     AnswerRelevancy,
@@ -37,17 +37,16 @@ def run_evaluation():
     # Initialize RAG system
     rag_system = GeminiRAG()
     
-    # 1. Properly Wrap the Judge LLM with LangchainLLWrapper
-    # 1. Properly Wrap the Judge LLM (Updated class name)
+    # 1. Properly Wrap the Judge LLM with LangchainLLMWrapper
     raw_judge_llm = ChatGoogleGenerativeAI(
         model="gemini-flash-latest",  
         google_api_key=os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"),
         temperature=0
     )
-    judge_llm = LangchainLLM(llm=raw_judge_llm)  
+    judge_llm = LangchainLLMWrapper(raw_judge_llm)  # 🔄 Updated wrapper instance
 
-    # 2. Properly Wrap Embeddings (Updated class name)
-    judge_embeddings = LangchainEmbeddings(embeddings=rag_system.embeddings)  
+    # 2. Properly Wrap Embeddings with LangchainEmbeddingsWrapper
+    judge_embeddings = LangchainEmbeddingsWrapper(rag_system.embeddings)  # 🔄 Updated wrapper instance
 
     results = []
     
@@ -107,7 +106,7 @@ def run_evaluation():
                 "last_run": datetime.now().strftime("%Y-%m-%d %H:%M")
             }
 
-            # --- CRITICAL FIX: LINK DIRECTLY TO STREAMLIT METRICS READ WORKSPACE ---
+            # --- MATCHES STREAMLIT METRICS READ WORKSPACE ---
             LOCAL_METRICS_PATH = "metrics.json"
             
             with open(LOCAL_METRICS_PATH, "w") as f:
