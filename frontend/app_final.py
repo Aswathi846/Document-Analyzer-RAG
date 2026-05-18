@@ -179,6 +179,7 @@ for message in st.session_state.messages:
                     st.divider()
 
 # 8. Chat Logic executing directly against GeminiRAG instance
+# 8. Chat Logic executing directly against GeminiRAG instance
 if prompt := st.chat_input("What would you like to know?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -188,27 +189,36 @@ if prompt := st.chat_input("What would you like to know?"):
         if not rag_system:
             st.error("System pipeline engines are currently uninitialized or configured incorrectly.")
         else:
+            # Initialize empty variables to store results outside the status context block
+            answer = ""
+            sources = []
+            
+            # Stage 1: Run the backend computations safely inside the status box
             with st.status("Consulting the knowledge base...", expanded=True) as status:
                 try:
-                    # Call functions identically to how FastAPI processed them
                     relevant_docs = rag_system.retrieve_and_rerank(prompt)
                     answer = rag_system.generate(prompt, relevant_docs)
                     sources = [doc.page_content for doc in relevant_docs]
                     
                     status.update(label="Analysis Complete!", state="complete", expanded=False)
-                    st.markdown(answer)
-                    
-                    if sources:
-                        with st.expander("🔍 View Evidence (Retrieved Context)"):
-                            for idx, src in enumerate(sources):
-                                st.caption(f"Source Chunk {idx+1}:")
-                                st.write(src)
-                    
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": answer,
-                        "sources": sources
-                    })
                 except Exception as e:
                     status.update(label="RAG Engine Error", state="error")
                     st.error(f"Internal Pipeline Processing Failure: {e}")
+
+            # Stage 2: Render results out here (OUTSIDE of the st.status container block)
+            if answer:
+                st.markdown(answer)
+                
+                if sources:
+                    with st.expander("🔍 View Evidence (Retrieved Context)"):
+                        for idx, src in enumerate(sources):
+                            st.caption(f"Source Chunk {idx+1}:")
+                            st.write(src)
+                            st.divider()
+                
+                # Append clean state to session history
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": answer,
+                    "sources": sources
+                })
