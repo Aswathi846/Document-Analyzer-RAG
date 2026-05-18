@@ -50,8 +50,8 @@ st.markdown("""
 
 METRICS_FILE_PATH = "/app/shared/metrics.json"
 
-# 3. Configuration - Set to internal container loopback on Hugging Face's port
-BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7860")
+# 3. Configuration - Explicitly map to your internal FastAPI container port
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8002")
 API_URL = BACKEND_URL
 
 
