@@ -87,9 +87,10 @@ with st.sidebar:
     # Metrics Section
 
     # Metrics Section
+    # Metrics Section
     def load_metrics():
         try:
-            # Updated to use METRICS_FILE_PATH variable
+            # Use the absolute container volume path variable
             with open(METRICS_FILE_PATH, "r") as f:
                 data = json.load(f)
                 return data
