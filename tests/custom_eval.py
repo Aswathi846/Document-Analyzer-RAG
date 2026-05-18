@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import time
 import json
+import numpy as np
 from datetime import datetime
 from src.pipeline import GeminiRAG
 from dotenv import load_dotenv
@@ -9,8 +10,8 @@ from langchain_core.tracers.context import collect_runs
 
 # --- CRITICAL RAGAS WRAPPER IMPORTS (STABLE CONVENTION) ---
 from ragas import evaluate
-from ragas.llms import LangchainLLMWrapper                  # 🔄 Corrected top-level import name
-from ragas.embeddings import LangchainEmbeddingsWrapper      # 🔄 Corrected top-level import name
+from ragas.llms import LangchainLLMWrapper                  
+from ragas.embeddings import LangchainEmbeddingsWrapper      
 from ragas.metrics import (
     Faithfulness,
     AnswerRelevancy,
@@ -43,10 +44,10 @@ def run_evaluation():
         google_api_key=os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"),
         temperature=0
     )
-    judge_llm = LangchainLLMWrapper(raw_judge_llm)  # 🔄 Updated wrapper instance
+    judge_llm = LangchainLLMWrapper(raw_judge_llm)
 
     # 2. Properly Wrap Embeddings with LangchainEmbeddingsWrapper
-    judge_embeddings = LangchainEmbeddingsWrapper(rag_system.embeddings)  # 🔄 Updated wrapper instance
+    judge_embeddings = LangchainEmbeddingsWrapper(rag_system.embeddings)
 
     results = []
     
@@ -76,15 +77,15 @@ def run_evaluation():
     
     with collect_runs() as cb:
         try:
-            # Pass our specific judge LLM/Embeddings settings explicitly into the metrics
+            # Let metrics initialize cleanly; evaluation overrides standard pipelines via llm/embeddings parameters below
             metrics = [
-                Faithfulness(llm=judge_llm), 
-                AnswerRelevancy(llm=judge_llm, embeddings=judge_embeddings), 
-                ContextPrecision(llm=judge_llm), 
-                ContextRecall(llm=judge_llm)
+                Faithfulness(), 
+                AnswerRelevancy(), 
+                ContextPrecision(), 
+                ContextRecall()
             ]
 
-            # Execute evaluation
+            # Execute evaluation with global driver specifications explicitly injected
             score = evaluate(
                 dataset=dataset,
                 metrics=metrics,
@@ -97,7 +98,10 @@ def run_evaluation():
             
             df = score.to_pandas()
             
-            # Formatted to perfectly match your frontend app.py layout extraction keys
+            # --- NUMPY NAN PROTECTION SAFETY BLOCK ---
+            # Replaces any unparseable "NaN" cells with a clean 0.0 float value
+            df = df.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+            
             summary_metrics = {
                 "faithfulness": float(df['faithfulness'].mean()) if 'faithfulness' in df else 0.0,
                 "answer_relevance": float(df['answer_relevancy'].mean()) if 'answer_relevancy' in df else 0.0,
@@ -106,9 +110,8 @@ def run_evaluation():
                 "last_run": datetime.now().strftime("%Y-%m-%d %H:%M")
             }
 
-            # --- MATCHES STREAMLIT METRICS READ WORKSPACE ---
+            # Write clean payload to local project workspace metrics path
             LOCAL_METRICS_PATH = "metrics.json"
-            
             with open(LOCAL_METRICS_PATH, "w") as f:
                 json.dump(summary_metrics, f, indent=4)
             
@@ -119,7 +122,6 @@ def run_evaluation():
             print("\n✅ Evaluation Complete!")
             print(f"Mean Faithfulness: {summary_metrics['faithfulness']:.2%}")
             print(f"Mean Relevancy: {summary_metrics['answer_relevance']:.2%}")
-            print(f"Results exported directly to local root path: {LOCAL_METRICS_PATH}")
 
             return summary_metrics
         
