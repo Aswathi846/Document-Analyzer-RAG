@@ -64,7 +64,7 @@ class GeminiRAG:
 
         # 4. Initialize LLM
         # LangChain LLM classes automatically send traces if variables are in .env
-        self.llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
+        self.llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0.3)
 
     @traceable(run_type="retriever") # 2nd step: Captures retrieval & reranking
     def retrieve_and_rerank(self, question):
