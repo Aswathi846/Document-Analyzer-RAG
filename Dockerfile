@@ -16,7 +16,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 COPY src/ ./src/
-COPY data/ ./data/
+# Create the directory structure explicitly inside the container
+RUN mkdir -p data/processed data/processed_data data/raw_data data/uploads
+
+# Create the specific files with basic seed contents so the app doesn't crash on boot
+RUN echo "Initial evaluation data" > data/processed/evaluation_report.csv
+RUN echo "Cleaned text documents go here" > data/processed_data/docs_clean.txt
+RUN echo "Raw documents go here" > data/raw_data/docs.txt
+
 COPY start.sh .
 
 # Give execute permissions to our startup manager script
