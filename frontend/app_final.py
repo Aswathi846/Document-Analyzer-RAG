@@ -77,19 +77,31 @@ with st.sidebar:
             with open(METRICS_FILE_PATH, "r") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            return {"faithfulness": 0, "answer_relevance": 0, "last_run": "N/A"}
+            # Fallback values if metrics.json doesn't exist yet
+            return {"faithfulness": 0.0, "answer_relevance": 0.0, "last_run": "N/A"}
 
     metrics = load_metrics()
 
     st.subheader("Performance Metrics")
     col1, col2 = st.columns([1, 1])
 
-    # Mapping to correct keys based on your main_final.py schema
-    faithfulness = metrics.get('faithfulness', 0)
-    relevancy = metrics.get('answer_relevance', 0) if 'answer_relevance' in metrics else metrics.get('relevancy', 0)
+    raw_faithfulness = metrics.get('faithfulness', 0.0)
+    raw_relevancy = metrics.get('answer_relevance') or metrics.get('relevancy') or metrics.get('answer_relevancy') or 0.0
 
-    col1.metric("Faithfulness", f"{faithfulness * 100:.0f}%")
-    col2.metric("Relevancy", f"{relevancy * 100:.0f}%")
+    # Ensure values are floats
+    try:
+        val_faithfulness = float(raw_faithfulness)
+        val_relevancy = float(raw_relevancy)
+    except (ValueError, TypeError):
+        val_faithfulness = 0.0
+        val_relevancy = 0.0
+
+    # If the metrics are stored as integers (e.g., 85 instead of 0.85), adjust them
+    if val_faithfulness > 1.0: val_faithfulness /= 100.0
+    if val_relevancy > 1.0: val_relevancy /= 100.0
+
+    col1.metric("Faithfulness", f"{val_faithfulness * 100:.0f}%")
+    col2.metric("Relevancy", f"{val_relevancy * 100:.0f}%")
 
     st.caption(f"Last benchmark run: {metrics.get('last_run', 'N/A')}")
 
