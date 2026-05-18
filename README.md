@@ -1,12 +1,4 @@
-# 📊 Document Analyzer Project (RAG)
-
-A comprehensive, end-to-end Machine Learning application designed to perform sentiment analysis. This repository includes model training, evaluation logs with MLflow, and a containerized interactive Streamlit dashboard deployed to Hugging Face Spaces.
-
 ---
-
-### 🚀 Hugging Face Deployment Metadata
-> **Note:** The configuration block below is required by Hugging Face Spaces to manage the containerized environment.
-```yaml
 title: Document Analyzer RAG
 emoji: 🚀
 colorFrom: blue
@@ -16,7 +8,12 @@ sdk_version: 1.35.0
 python_version: 3.11
 app_file: frontend/app_final.py  
 pinned: false
-```
+---
+
+# 📊 Document Analyzer Project (RAG)
+
+A comprehensive, end-to-end Machine Learning application designed to perform sentiment analysis. This repository includes model training, evaluation logs with MLflow, and a containerized interactive Streamlit dashboard deployed to Hugging Face Spaces.
+
 ---
 
 ## 🚀 Live Demo
