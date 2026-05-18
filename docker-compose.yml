@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # 1. Vector Database Service
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=FALSE
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - CHROMA_SERVER_HOST=0.0.0.0
+    networks:
+      - rag-network
+
+  # 2. FastAPI Backend Service (With LangSmith Observability)
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: aswathi/rag-backend:latest
+    container_name: rag_backend
+    restart: always
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env # Automatically reads variables from your local .env file
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      # Explicitly mapping LangSmith vars into the container context
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+    volumes:
+      - shared_metrics:/app/shared
+    depends_on:
+      - chromadb
+    networks:
+      - rag-network
+
+  # 3. Streamlit Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.frontend
+    image: aswathi/rag-frontend:latest
+    container_name: rag_frontend
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8002
+    volumes:
+      - shared_metrics:/app/shared
+    depends_on:
+      - backend
+    networks:
+      - rag-network
+
+volumes:
+  chroma_data:
+  shared_metrics:
+
+networks:
+  rag-network:
+    driver: bridge

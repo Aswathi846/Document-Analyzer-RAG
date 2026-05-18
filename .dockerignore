@@ -1,0 +1,26 @@
+# Git
+.git
+.github
+.gitignore
+
+# Environments & Dependencies
+venv/
+
+# Local Databases & Caches
+chroma/
+chroma_data/
+chroma_db/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Data and State Files
+data/
+metrics.json
+frontend/metrics.json
+notebooks/
+test_langsmith.py
+
+# Docker Files (REMOVED Dockerfiles from here so the engine can read them!)
+docker-compose.yml

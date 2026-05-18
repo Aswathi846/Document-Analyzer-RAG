@@ -1,0 +1,36 @@
+﻿# Python Virtual Environments & Dependencies
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Local Database Stores & Persistent States
+chroma_data/
+chroma_db/
+.chroma/
+
+# Environment Configurations & Secret Keys 
+.env
+
+# Data, Temporary Uploads & Scratch Logs
+data/uploads/*
+!data/uploads/.gitkeep
+metrics.json
+frontend/metrics.json
+*.log
+
+# Dev Testing Validation Scripts
+test_langsmith.py
+
+# OS Specific junk files
+.DS_Store
+Thumbs.db
+chroma/
+
+chroma/
+data/
+tests/

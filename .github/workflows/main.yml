@@ -1,0 +1,27 @@
+name: Sync to Hugging Face Spaces
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Mirror to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          git remote add hf https://Aswathi007:$HF_TOKEN@huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG.git
+          
+          # Force sync changes across remotes
+          git push --force hf main
