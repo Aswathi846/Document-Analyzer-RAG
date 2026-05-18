@@ -14,8 +14,15 @@ load_dotenv(dotenv_path=ENV_PATH if ENV_PATH.exists() else None)
 
 class IngestionPipeline:
     def __init__(self, model_name="models/gemini-embedding-001"):
-        # 1. Initialize Embeddings
-        self.embeddings = GoogleGenerativeAIEmbeddings(model=model_name)
+        # 1. Fetch the API key explicitly from system variables (Hugging Face Secrets)
+        #    or fallback to whatever dotenv grabbed locally.
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        
+        # Initialize Embeddings with the explicit key
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model=model_name,
+            google_api_key=api_key
+        )
         
         # 2. Dynamic Connection Logic (Fixes the ValueError)
         IS_DOCKER = os.path.exists('/.dockerenv')
