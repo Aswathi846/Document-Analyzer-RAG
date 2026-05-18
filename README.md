@@ -17,11 +17,9 @@ A comprehensive, end-to-end Machine Learning application designed to perform sen
 ---
 ## 🚀 Live Demo
 
-• Check out the interactive dashboard live on Hugging Face Spaces: 
-👉 **https://huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG**
+• Check out the interactive dashboard live on Hugging Face Spaces: 👉 **https://huggingface.co/spaces/Aswathi007/Document-Analyzer-RAG**
 
-• Langsmith Observability Dashboard:
-👉 **https://smith.langchain.com/o/5c81bcd3-13e7-4343-a02b-4b2607ae6f8e/projects/p/3621b448-8a85-40b8-b0bf-218a91aa76e8**
+• Langsmith Observability Dashboard: 👉 **https://smith.langchain.com/o/5c81bcd3-13e7-4343-a02b-4b2607ae6f8e/projects/p/3621b448-8a85-40b8-b0bf-218a91aa76e8**
 
 ---
 ## 📸 System Interface
