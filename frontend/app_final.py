@@ -50,8 +50,8 @@ st.markdown("""
 
 METRICS_FILE_PATH = "/app/shared/metrics.json"
 
-# 3. Configuration-for docker
-BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8002")
+# 3. Configuration - Set to internal container loopback on Hugging Face's port
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:7860")
 API_URL = BACKEND_URL
 
 
@@ -86,20 +86,15 @@ with st.sidebar:
 
     # Metrics Section
 
+    # Metrics Section
     def load_metrics():
-
         try:
-
-            with open("metrics.json", "r") as f:
-
+            # Updated to use METRICS_FILE_PATH variable
+            with open(METRICS_FILE_PATH, "r") as f:
                 data = json.load(f)
-
                 return data
-
         except (FileNotFoundError, json.JSONDecodeError):
-
             # Fallback if benchmark hasn't run yet or file is empty
-
             return {"faithfulness": 0, "relevancy": 0, "last_run": "N/A"}
 
 
