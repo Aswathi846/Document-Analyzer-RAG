@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 COPY src/ ./src/
+COPY tests/ ./tests/
 # Create the directory structure explicitly inside the container 
 RUN mkdir -p data/processed data/processed_data data/raw_data data/uploads /app/shared
 
