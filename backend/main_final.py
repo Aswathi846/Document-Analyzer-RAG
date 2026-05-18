@@ -86,6 +86,9 @@ async def trigger_benchmark(background_tasks: BackgroundTasks):
             results = run_evaluation()
             results['last_run'] = datetime.now().strftime("%Y-%m-%d %H:%M")
             
+            # Ensure the /app/shared parent directory exists
+            os.makedirs(os.path.dirname(METRICS_FILE_PATH), exist_ok=True)
+            
             # Save directly to the shared volume directory path
             with open(METRICS_FILE_PATH, "w") as f:
                 json.dump(results, f)
