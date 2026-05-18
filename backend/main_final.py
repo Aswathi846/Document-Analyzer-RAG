@@ -60,13 +60,33 @@ async def ask_rag(request: QueryRequest):
 async def upload_document(file: UploadFile = File(...)):
     temp_path = UPLOAD_DIR / file.filename
     try:
+        # 1. Stream the uploaded file into the safe system temporary folder
         with temp_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        ingestor.run(str(temp_path))
-        return {"status": "success", "filename": file.filename}
+        
+        # 2. Run ingestion inside a detailed traceback tracker
+        try:
+            print(f"Starting vector ingestion pipeline for: {file.filename}")
+            ingestor.run(str(temp_path))
+            print(f"Successfully processed and indexed: {file.filename}")
+            return {"status": "success", "filename": file.filename}
+        except Exception as ingest_error:
+            import traceback
+            print(f"💥 Ingestion Pipeline Failure: {str(ingest_error)}")
+            traceback.print_exc()
+            
+            # Send the explicit python error context back to the Streamlit frontend
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Ingestion Pipeline Error: {str(ingest_error)}. Verify your Chroma instance state and keys."
+            )
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        if not isinstance(e, HTTPException):
+            raise HTTPException(status_code=500, detail=f"File Upload Core Error: {str(e)}")
+        raise e
     finally:
+        # 3. Always clean up the temporary files to prevent volume storage leakage
         if temp_path.exists():
             os.remove(temp_path)
 
@@ -106,5 +126,5 @@ async def trigger_benchmark(background_tasks: BackgroundTasks):
 
 if __name__ == "__main__":
     import uvicorn
-    # FIX: Explicitly enforce reload=False to ensure the backend process isn't killed mid-upload.
+    # FIX: Explicitly enforce reload=False to guarantee hot-reloaders won't kill active web sockets mid-flight.
     uvicorn.run("main_final:app", host="0.0.0.0", port=8002, reload=False)
