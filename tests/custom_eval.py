@@ -9,7 +9,7 @@ from langchain_core.tracers.context import collect_runs
 
 # --- CRITICAL RAGAS WRAPPER IMPORTS ---
 from ragas import evaluate
-from ragas.llms import LangchainLLMWrapper
+from ragas.llms import LangchainLLWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.metrics import (
     Faithfulness,
@@ -37,13 +37,13 @@ def run_evaluation():
     # Initialize RAG system
     rag_system = GeminiRAG()
     
-    # 1. Properly Wrap the Judge LLM with LangchainLLMWrapper
+    # 1. Properly Wrap the Judge LLM with LangchainLLWrapper
     raw_judge_llm = ChatGoogleGenerativeAI(
         model="gemini-flash-latest",  # High-speed flash model recommended for evaluations
-        google_api_key=os.environ.get("GOOGLE_API_KEY"),
+        google_api_key=os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"),
         temperature=0
     )
-    judge_llm = LangchainLLMWrapper(raw_judge_llm)
+    judge_llm = LangchainLLWrapper(raw_judge_llm)
 
     # 2. Properly Wrap Embeddings with LangchainEmbeddingsWrapper
     judge_embeddings = LangchainEmbeddingsWrapper(rag_system.embeddings)
@@ -76,9 +76,15 @@ def run_evaluation():
     
     with collect_runs() as cb:
         try:
-            metrics = [Faithfulness(), AnswerRelevancy(), ContextPrecision(), ContextRecall()]
+            # Pass our specific judge LLM/Embeddings settings explicitly into the metrics
+            metrics = [
+                Faithfulness(llm=judge_llm), 
+                AnswerRelevancy(llm=judge_llm, embeddings=judge_embeddings), 
+                ContextPrecision(llm=judge_llm), 
+                ContextRecall(llm=judge_llm)
+            ]
 
-            # Execute evaluation passing our wrapped models
+            # Execute evaluation
             score = evaluate(
                 dataset=dataset,
                 metrics=metrics,
@@ -91,21 +97,19 @@ def run_evaluation():
             
             df = score.to_pandas()
             
+            # Formatted to perfectly match your frontend app.py layout extraction keys
             summary_metrics = {
                 "faithfulness": float(df['faithfulness'].mean()) if 'faithfulness' in df else 0.0,
-                "relevancy": float(df['answer_relevancy'].mean()) if 'answer_relevancy' in df else 0.0,
+                "answer_relevance": float(df['answer_relevancy'].mean()) if 'answer_relevancy' in df else 0.0,
                 "precision": float(df['context_precision'].mean()) if 'context_precision' in df else 0.0,
                 "total_tests": len(test_set),
                 "last_run": datetime.now().strftime("%Y-%m-%d %H:%M")
             }
 
-            # --- MATCHES SHARED CONTAINER VOLUME PATH ---
-            SHARED_METRICS_PATH = "/app/shared/metrics.json"
+            # --- CRITICAL FIX: LINK DIRECTLY TO STREAMLIT METRICS READ WORKSPACE ---
+            LOCAL_METRICS_PATH = "metrics.json"
             
-            # Runtime safety: Ensure the /app/shared directory explicitly exists before writing
-            os.makedirs(os.path.dirname(SHARED_METRICS_PATH), exist_ok=True)
-            
-            with open(SHARED_METRICS_PATH, "w") as f:
+            with open(LOCAL_METRICS_PATH, "w") as f:
                 json.dump(summary_metrics, f, indent=4)
             
             # Save detailed CSV reports safely
@@ -114,8 +118,8 @@ def run_evaluation():
             
             print("\n✅ Evaluation Complete!")
             print(f"Mean Faithfulness: {summary_metrics['faithfulness']:.2%}")
-            print(f"Mean Relevancy: {summary_metrics['relevancy']:.2%}")
-            print(f"Results exported directly to {SHARED_METRICS_PATH}")
+            print(f"Mean Relevancy: {summary_metrics['answer_relevance']:.2%}")
+            print(f"Results exported directly to local root path: {LOCAL_METRICS_PATH}")
 
             return summary_metrics
         

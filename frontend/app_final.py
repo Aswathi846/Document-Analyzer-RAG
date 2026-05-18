@@ -116,9 +116,10 @@ with st.sidebar:
                 try:
                     from tests.custom_eval import run_evaluation
                     
-                    status.write("Starting RAGAS background pipeline metrics calculation...")
+                    status.write("Running evaluation metrics calculation...")
                     results = run_evaluation()
                     
+                    # Ensure results are valid
                     if results is None or not isinstance(results, dict):
                         results = {
                             "faithfulness": 0.0,
@@ -126,18 +127,23 @@ with st.sidebar:
                             "error": "Evaluation execution returned empty dataset."
                         }
                     
+                    # Inject timestamp
                     results['last_run'] = datetime.now().strftime("%Y-%m-%d %H:%M")
                     
+                    # Force rewrite to the exact local path the frontend reads
                     with open(METRICS_FILE_PATH, "w") as f:
-                        json.dump(results, f)
+                        json.dump(results, f, indent=4)
                         
-                    status.update(label="Benchmark Started!", state="complete")
+                    status.update(label="Benchmark Complete!", state="complete")
                     st.toast("Evaluation completed and saved!", icon="✅")
                     time.sleep(1)
                     st.rerun()
                 except Exception as e:
                     status.update(label="Benchmark Failed", state="error")
+                    # This will print the exact traceback if Ragas fails on Hugging Face!
                     st.error(f"Error running benchmark script: {e}")
+                    import traceback
+                    st.code(traceback.format_exc())
 
     st.divider()
 
