@@ -28,7 +28,6 @@ load_dotenv(dotenv_path=ENV_PATH if ENV_PATH.exists() else None)
 class GeminiRAG:
     def __init__(self):
         # 1. Fetch the API key explicitly from system variables (Hugging Face Secrets)
-        #    or fallback to whatever dotenv grabbed locally.
         api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
         # 2. Initialize Embeddings with explicit credential token
@@ -37,23 +36,22 @@ class GeminiRAG:
             google_api_key=api_key
         )
         
-        IS_DOCKER = os.path.exists('/.dockerenv')
-        CHROMA_HOST = os.getenv("CHROMA_HOST", "127.0.0.1")
-        CHROMA_PORT = int(os.getenv("CHROMA_PORT", 8000))
-        
-        print(f"Connecting to ChromaDB at {CHROMA_HOST}:{CHROMA_PORT}...")
-        remote_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
+        # 3. Local Disk Persistence Connection Logic (Fixes local network host dependencies)
+        # Point to the exact directory we set up in ingestion.py
+        CHROMA_DIR = "./chroma_db"
+        print(f"Initializing Local Persistent ChromaDB Reader at: {CHROMA_DIR}...")
+        local_client = chromadb.PersistentClient(path=CHROMA_DIR)
 
-        # 3. Load Vector Store
+        # 4. Load Vector Store via the local database client
         self.vectorstore = Chroma(
-            client=remote_client,
+            client=local_client,
             collection_name="research_assistant",
             embedding_function=self.embeddings
         )
         
         base_retriever = self.vectorstore.as_retriever(search_kwargs={"k": 10})
 
-        # 4. Initialize Reranker (Two-Stage Retrieval)
+        # 5. Initialize Reranker (Two-Stage Retrieval)
         if FlashrankRerank and ContextualCompressionRetriever:
             try:
                 compressor = FlashrankRerank()
@@ -69,7 +67,7 @@ class GeminiRAG:
             self.retriever = base_retriever
             print("System initialized with Base Retriever.")
 
-        # 5. Initialize LLM with explicit credential token
+        # 6. Initialize LLM with explicit credential token
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-flash-latest", 
             temperature=0.3,
