@@ -77,15 +77,25 @@ async def trigger_benchmark(background_tasks: BackgroundTasks):
     """
     from tests.custom_eval import run_evaluation
     
+    # Define the exact same absolute path your frontend is reading from
+    METRICS_FILE_PATH = "/app/shared/metrics.json"
+    
     def run_and_save():
         try:
+            print("Starting background RAGAS evaluation...")
             results = run_evaluation()
             results['last_run'] = datetime.now().strftime("%Y-%m-%d %H:%M")
-            # Save locally so frontend can read it
-            with open("metrics.json", "w") as f:
+            
+            # Save directly to the shared volume directory path
+            with open(METRICS_FILE_PATH, "w") as f:
                 json.dump(results, f)
+            print(f"Benchmark completed successfully! Saved to {METRICS_FILE_PATH}")
+            
         except Exception as e:
-            print(f"Benchmark Background Error: {e}")
+            # This logs the specific failure traceback directly into Hugging Face logs
+            import traceback
+            print(f"💥 Benchmark Background Error: {e}")
+            traceback.print_exc()
 
     background_tasks.add_task(run_and_save)
     return {"status": "started", "message": "Benchmark is running in background"}
