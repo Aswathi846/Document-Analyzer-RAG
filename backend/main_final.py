@@ -30,8 +30,9 @@ app = FastAPI(
 rag_system = GeminiRAG()
 ingestor = IngestionPipeline()
 
-# Ensure local upload directory exists
-UPLOAD_DIR = Path("data/uploads")
+# FIX: Use Linux system /tmp space so creating/deleting temporary files 
+# doesn't trigger Uvicorn/WatchFiles tracking to reload the workspace.
+UPLOAD_DIR = Path("/tmp/rag_uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 class QueryRequest(BaseModel):
@@ -105,4 +106,5 @@ async def trigger_benchmark(background_tasks: BackgroundTasks):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main_final:app", host="0.0.0.0", port=8002, reload=True)
+    # FIX: Explicitly enforce reload=False to ensure the backend process isn't killed mid-upload.
+    uvicorn.run("main_final:app", host="0.0.0.0", port=8002, reload=False)
